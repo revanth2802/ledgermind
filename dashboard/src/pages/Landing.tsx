@@ -212,8 +212,7 @@ const Landing = () => {
             <a href="#features" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>Features</a>
             <a href="#how-it-works" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>How It Works</a>
             <a href="#use-cases" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>Use Cases</a>
-            <a href="https://github.com/ledgermind" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>GitHub</a>
-            <Link to="/dashboard" style={{
+            <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
               background: '#FF6600',
               color: 'white',
               padding: '10px 20px',
@@ -227,9 +226,9 @@ const Landing = () => {
               whiteSpace: 'nowrap',
               marginLeft: '8px',
             }}>
-              Dashboard
-              <Icon name="arrowRight" size={16} color="white" />
-            </Link>
+              <Icon name="github" size={16} color="white" />
+              GitHub
+            </a>
           </div>
         </div>
       </nav>
@@ -286,7 +285,7 @@ const Landing = () => {
         </p>
 
         <div style={{ display: 'flex', gap: '12px', marginBottom: '48px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a href="https://github.com/ledgermind" target="_blank" rel="noopener noreferrer" style={{
+          <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
             background: '#FF6600',
             color: 'white',
             padding: '14px 28px',
@@ -1105,7 +1104,7 @@ EMBEDDING_ENDPOINT=https://...`,
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'white' }}>LedgerMind</span>
           </div>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            <a href="https://github.com/ledgermind" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>GitHub</a>
+            <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>GitHub</a>
             <a href="#" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>Documentation</a>
             <a href="#" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>Discord</a>
           </div>
