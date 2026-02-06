@@ -213,7 +213,7 @@ const Landing = () => {
             <a href="#how-it-works" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>How It Works</a>
             <a href="#use-cases" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>Use Cases</a>
             <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
-              background: '#1A1A1A',
+              background: '#FF6600',
               color: 'white',
               padding: '10px 20px',
               borderRadius: '8px',
@@ -286,7 +286,7 @@ const Landing = () => {
 
         <div style={{ display: 'flex', gap: '12px', marginBottom: '48px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
-            background: '#FF6600',
+            background: '#1A1A1A',
             color: 'white',
             padding: '14px 28px',
             borderRadius: '12px',
@@ -296,7 +296,7 @@ const Landing = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 4px 14px rgba(255, 102, 0, 0.4)',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
             whiteSpace: 'nowrap',
           }}>
             <Icon name="github" size={20} color="white" />
