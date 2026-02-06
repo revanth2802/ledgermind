@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/ledgermind/',
+  base: '/',
   server: {
     port: 3001,
     proxy: {

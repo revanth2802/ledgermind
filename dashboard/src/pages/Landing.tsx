@@ -213,7 +213,7 @@ const Landing = () => {
             <a href="#how-it-works" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>How It Works</a>
             <a href="#use-cases" className="nav-link" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', fontWeight: 500, padding: '8px 12px' }}>Use Cases</a>
             <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
-              background: '#FF6600',
+              background: '#1A1A1A',
               color: 'white',
               padding: '10px 20px',
               borderRadius: '8px',
