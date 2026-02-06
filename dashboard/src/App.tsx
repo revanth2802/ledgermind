@@ -15,7 +15,7 @@ import Audit from './pages/Audit'
 
 function App() {
   const location = useLocation()
-  const isLanding = location.pathname === '/'
+  const isLanding = location.pathname === '/' || location.pathname === ''
 
   if (isLanding) {
     return <Landing />
