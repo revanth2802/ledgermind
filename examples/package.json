@@ -1,0 +1,19 @@
+{
+  "name": "ledgermind-examples",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "invoice": "tsx invoice-approval.ts",
+    "multi-agent": "tsx multi-agent-workflow.ts",
+    "industries": "tsx industry-examples.ts",
+    "all": "tsx industry-examples.ts"
+  },
+  "dependencies": {
+    "@ledgermind/sdk": "file:../packages/sdk",
+    "@ledgermind/types": "file:../packages/types"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
