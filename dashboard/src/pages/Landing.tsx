@@ -831,6 +831,167 @@ console.log(result.precedent);   // { similarity: 0.91, outcome: 'APPROVE', ... 
         </div>
       </section>
 
+      {/* CLI Section */}
+      <section style={{ padding: 'clamp(60px, 10vw, 100px) 16px', background: '#0D0D0D' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#FF6600', marginBottom: '16px', letterSpacing: '1px' }}>
+              POWERFUL CLI
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
+              Everything from your terminal
+            </h2>
+          </div>
+
+          {/* Terminal Window */}
+          <div style={{
+            background: '#1A1A1A',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            overflow: 'hidden',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          }}>
+            {/* Terminal Title Bar */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '14px 20px',
+              background: '#252525',
+              borderBottom: '1px solid #333',
+            }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F56' }} />
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E' }} />
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27C93F' }} />
+              <span style={{ fontSize: '13px', color: '#888', marginLeft: '12px', fontFamily: "'SF Mono', 'Fira Code', Menlo, monospace" }}>
+                ledgermind — zsh
+              </span>
+            </div>
+
+            {/* Terminal Content */}
+            <div style={{ padding: 'clamp(20px, 3vw, 32px)', overflowX: 'auto' }}>
+              <pre style={{
+                color: '#E5E5E5',
+                fontSize: 'clamp(10px, 1.3vw, 13px)',
+                lineHeight: 1.5,
+                fontFamily: "'SF Mono', 'Fira Code', Menlo, monospace",
+                margin: 0,
+                whiteSpace: 'pre',
+              }}>
+<span style={{ color: '#FF6600' }}>{`██╗     ███████╗██████╗  ██████╗ ███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██████╗ 
+██║     ██╔════╝██╔══██╗██╔════╝ ██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗
+██║     █████╗  ██║  ██║██║  ███╗█████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║  ██║
+██║     ██╔══╝  ██║  ██║██║   ██║██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██║  ██║
+███████╗███████╗██████╔╝╚██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝
+╚══════╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝`}</span>
+{'\n'}
+<span style={{ color: '#888' }}>Decision Intelligence for AI Systems</span>
+{'\n\n'}
+<span style={{ color: '#27C93F' }}>$</span> <span style={{ color: '#fff' }}>ledgermind status</span>
+{'\n'}
+<span style={{ color: '#22C55E' }}>✔</span> Connected to LedgerMind API
+{'\n\n'}
+{'   ╭──────────────────────────╮\n'}
+{'   │                          │\n'}
+{'   │   LedgerMind Status      │\n'}
+{'   │                          │\n'}
+{'   │   API Status: '}<span style={{ color: '#22C55E' }}>● Online</span>{'   │\n'}
+{'   │   Total Traces: 1,248    │\n'}
+{'   │   Total Events: 8,492    │\n'}
+{'   │   Total Overrides: 156   │\n'}
+{'   │   Active Policies: 12    │\n'}
+{'   │                          │\n'}
+{'   ╰──────────────────────────╯\n'}
+{'\n'}
+<span style={{ color: '#27C93F' }}>$</span> <span style={{ color: '#fff' }}>ledgermind similar "damaged product refund"</span>
+{'\n\n'}
+<span style={{ color: '#3B82F6' }}>🔍</span> Similar Decisions for: "damaged product refund"
+{'\n\n'}
+Found <span style={{ color: '#FF6600' }}>5</span> similar cases | Avg confidence: <span style={{ color: '#22C55E' }}>90%</span> | Override rate: <span style={{ color: '#F59E0B' }}>12%</span>
+{'\n\n'}
+{'╭───────────────────────────╮\n'}
+{'│                           │\n'}
+{'│   #1 ('}<span style={{ color: '#22C55E' }}>91% match</span>{')        │\n'}
+{'│                           │\n'}
+{'│   Outcome: '}<span style={{ color: '#22C55E' }}>approved</span>{'      │\n'}
+{'│   Confidence: 92%         │\n'}
+{'│   Overridden: No          │\n'}
+{'│                           │\n'}
+{'╰───────────────────────────╯\n'}
+{'\n'}
+<span style={{ color: '#27C93F' }}>$</span> <span style={{ color: '#fff' }}>ledgermind audit</span>
+{'\n\n'}
+{'╭───────────────────────── LedgerMind Audit ─────────────────────────╮\n'}
+{'│                                                                    │\n'}
+{'│   📋 AI AUDIT REPORT                                               │\n'}
+{'│   Period: Last 30 days                                              │\n'}
+{'│                                                                    │\n'}
+{'│   Status: '}<span style={{ color: '#22C55E' }}>✓ COMPLIANT</span>{'                                            │\n'}
+{'│                                                                    │\n'}
+{'│   Key Findings:                                                    │\n'}
+{'│   ✓ Average confidence 91% across 8,492 decisions                  │\n'}
+{'│   ✓ All overrides documented with reasoning                        │\n'}
+{'│   ✓ No anomalous patterns detected                                 │\n'}
+{'│                                                                    │\n'}
+{'╰────────────────────────────────────────────────────────────────────╯\n'}
+{'\n'}
+<span style={{ color: '#27C93F' }}>$</span> <span style={{ color: '#888' }}>▌</span>
+              </pre>
+            </div>
+          </div>
+
+          {/* CLI Commands Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px',
+            marginTop: '40px',
+          }}>
+            {[
+              { cmd: 'ledgermind status', desc: 'Check connection & stats' },
+              { cmd: 'ledgermind traces list', desc: 'Browse decision traces' },
+              { cmd: 'ledgermind similar "..."', desc: 'Semantic search' },
+              { cmd: 'ledgermind audit', desc: 'AI compliance audit' },
+              { cmd: 'ledgermind patterns', desc: 'Detect anomalies' },
+              { cmd: 'ledgermind ask "..."', desc: 'Natural language queries' },
+              { cmd: 'ledgermind explain <id>', desc: 'AI decision explanation' },
+              { cmd: 'ledgermind recommend', desc: 'Get AI recommendation' },
+            ].map((item) => (
+              <div key={item.cmd} style={{
+                padding: '16px 20px',
+                background: '#1A1A1A',
+                borderRadius: '12px',
+                border: '1px solid #2A2A2A',
+              }}>
+                <code style={{
+                  color: '#FF6600',
+                  fontSize: '13px',
+                  fontFamily: "'SF Mono', 'Fira Code', Menlo, monospace",
+                  display: 'block',
+                  marginBottom: '6px',
+                }}>
+                  {item.cmd}
+                </code>
+                <div style={{ fontSize: '13px', color: '#888' }}>
+                  {item.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <code style={{
+              color: '#888',
+              fontSize: '15px',
+              fontFamily: "'SF Mono', 'Fira Code', Menlo, monospace",
+            }}>
+              <span style={{ color: '#27C93F' }}>$</span>{' '}
+              npm install -g @ledgermind/cli
+            </code>
+          </div>
+        </div>
+      </section>
+
       {/* Architecture */}
       <section style={{ padding: 'clamp(60px, 10vw, 120px) 16px' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>

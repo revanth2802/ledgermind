@@ -695,23 +695,90 @@ MIT License — see [LICENSE](./LICENSE) for details.
 
 ## 🙋 FAQ
 
-**Q: How is this different from LangSmith/Langfuse?**
-> LangSmith and Langfuse are observability tools — they trace what happened. LedgerMind captures *decisions as precedents* with reasoning, enabling similarity search and learning from human overrides.
+<details>
+<summary><b>How is LedgerMind different from LangSmith, Langfuse, or Helicone?</b></summary>
 
-**Q: Does this replace my agent framework?**
-> No. LedgerMind works *alongside* any AI system. Your AI still makes decisions — LedgerMind remembers why.
+Those are **LLM observability** tools — they trace token usage, latency, and prompt/completion pairs. LedgerMind is a **decision intelligence** platform. It captures structured decision records (input context, outcome, reasoning, confidence) and lets you search by meaning, track overrides, and analyze patterns. Think of it this way: observability tells you *what your LLM did*, LedgerMind tells you *what your AI decided and why*.
 
-**Q: What database do I need?**
-> PostgreSQL 15+. pgvector extension is optional (recommended for production). Works without it using JSONB storage.
+</details>
 
-**Q: Can I self-host?**
-> Yes. LedgerMind is fully open source and designed for self-hosting.
+<details>
+<summary><b>Does this replace my AI framework (LangChain, CrewAI, etc.)?</b></summary>
 
-**Q: What AI provider do I need?**
-> OpenAI for embeddings and summarization. The API key goes in `services/api/.env`.
+No. LedgerMind works **alongside** any AI framework, product, or custom system. It's a layer that captures decisions — it doesn't make them. Your AI keeps doing its job, LedgerMind provides the visibility, audit trail, and analytics around it.
+
+</details>
+
+<details>
+<summary><b>What does "decision intelligence" mean in practice?</b></summary>
+
+It means you can answer questions like:
+- "How many refund decisions did our AI make last month, and what was the override rate?"
+- "Show me all decisions similar to this one — what happened in those cases?"
+- "Which AI actor has the highest override rate, and why?"
+- "Are we compliant? Generate an audit report."
+
+These answers come from captured decision data + semantic search + AI-powered analysis.
+
+</details>
+
+<details>
+<summary><b>What database do I need?</b></summary>
+
+PostgreSQL 15+ is required. The `pgvector` extension is recommended for semantic search but not strictly required — the system falls back to JSONB-based storage without it. For production, pgvector is strongly recommended.
+
+</details>
+
+<details>
+<summary><b>What AI provider do I need?</b></summary>
+
+By default, OpenAI is used for embeddings (semantic search) and AI features (patterns, audit, ask). But the embedding provider is **pluggable** — you can switch to Cohere, a custom HTTP endpoint, or disable embeddings entirely for testing. Set `EMBEDDING_PROVIDER` in your `.env` file.
+
+</details>
+
+<details>
+<summary><b>Can I use this without any AI provider?</b></summary>
+
+Yes. Set `EMBEDDING_PROVIDER=none` to disable embeddings. You'll still get full decision capture, override tracking, analytics, and the audit trail. Semantic search won't be available, but keyword-based querying still works.
+
+</details>
+
+<details>
+<summary><b>Can I self-host this?</b></summary>
+
+Absolutely. LedgerMind is 100% open source (MIT license) and designed for self-hosting. Run it with Docker Compose or deploy each service independently. No external SaaS dependency required.
+
+</details>
+
+<details>
+<summary><b>How does semantic search work?</b></summary>
+
+When a decision is recorded, LedgerMind generates a vector embedding of the input context + output + reasoning. These embeddings are stored in PostgreSQL via pgvector. When you search for similar decisions, your query is embedded and compared using cosine similarity. This means "damaged product return" will match "broken item refund" even though they share no keywords.
+
+</details>
+
+<details>
+<summary><b>Is this just a logging tool?</b></summary>
+
+No. Logging tools capture raw events. LedgerMind captures **structured decisions** with context, reasoning, confidence, and outcomes. On top of that, it provides:
+- Semantic similarity search (find precedents by meaning)
+- Override tracking (who corrected what, and why)
+- AI-powered analytics (patterns, audit reports, anomaly detection)
+- A full CLI and dashboard for exploration
+
+It's the difference between a log file and a decision intelligence platform.
+
+</details>
+
+<details>
+<summary><b>What scale can it handle?</b></summary>
+
+LedgerMind is built on PostgreSQL, which handles millions of rows comfortably. The schema supports partitioning by tenant and time range for larger deployments. For enterprise scale, you can shard by tenant ID and use connection pooling (PgBouncer).
+
+</details>
 
 ---
 
 <p align="center">
-  <b>AI decides. LedgerMind remembers why.</b>
+  <b>AI decides. LedgerMind captures, analyzes, and learns why.</b>
 </p>
