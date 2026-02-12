@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-
 // Professional SVG Icons Component
 const Icon = ({ name, size = 24, color = 'currentColor' }: { name: string; size?: number; color?: string }) => {
   const icons: Record<string, JSX.Element> = {
@@ -168,8 +165,6 @@ const Icon = ({ name, size = 24, color = 'currentColor' }: { name: string; size?
 }
 
 const Landing = () => {
-  const [email, setEmail] = useState('')
-
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -1202,43 +1197,25 @@ EMBEDDING_ENDPOINT=https://...`,
             display: 'flex', 
             gap: '12px', 
             justifyContent: 'center',
-            maxWidth: '420px',
-            margin: '0 auto',
             flexWrap: 'wrap',
           }}>
-            <input
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                flex: 1,
-                minWidth: '200px',
-                padding: '16px 20px',
-                borderRadius: '12px',
-                border: 'none',
-                fontSize: '16px',
-                background: 'white',
-              }}
-            />
-            <button style={{
+            <a href="https://github.com/revanth2802/ledgermind" target="_blank" rel="noopener noreferrer" style={{
               background: '#FF6600',
               color: 'white',
-              padding: '16px 28px',
+              padding: '16px 32px',
               borderRadius: '12px',
-              border: 'none',
+              textDecoration: 'none',
               fontSize: '16px',
               fontWeight: 600,
-              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
               whiteSpace: 'nowrap',
             }}>
-              Get Updates
-            </button>
+              <Icon name="github" size={20} color="white" />
+              Get Started on GitHub
+            </a>
           </div>
-
-          <p style={{ fontSize: '13px', color: '#555', marginTop: '16px' }}>
-            No spam. Just major releases and updates.
-          </p>
         </div>
       </section>
 
@@ -1269,8 +1246,9 @@ EMBEDDING_ENDPOINT=https://...`,
             <a href="#" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>Documentation</a>
             <a href="#" style={{ color: '#666', textDecoration: 'none', fontSize: '14px' }}>Discord</a>
           </div>
-          <div style={{ color: '#555', fontSize: '13px' }}>
-            © 2026 LedgerMind. MIT License.
+          <div style={{ color: '#555', fontSize: '13px', textAlign: 'right' }}>
+            LedgerMind © 2026 Revanth Malladi.<br />
+            Created and maintained by Revanth Malladi. MIT License.
           </div>
         </div>
       </footer>
