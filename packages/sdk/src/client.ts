@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import {
   LedgerMindConfig,
   DecisionEvent,
+  DecisionSignals,
   Trace,
   SimilarityQuery,
   SimilarityResult,
@@ -547,6 +548,75 @@ export class LedgerMindClient {
   }): Promise<string> {
     const response = await this.http.post('/ai/generate-reasoning', decision);
     return response.data.reasoning;
+  }
+
+  // ==========================================================================
+  // Chain of Thought (CoT) Capture & Analysis
+  // ==========================================================================
+
+  /**
+   * Log a decision with structured signals
+   *
+   * Captures the structured factors that drove a decision — like an
+   * airplane black box — instead of raw chain-of-thought text.
+   *
+   * Example:
+   * ```typescript
+   * await client.logDecisionWithSignals(traceId, 'step_1', 'VendorAgent', {
+   *   input: { vendor_id: 'V-1042', invoice_amount: 3400 },
+   *   output: { decision: 'approved' },
+   *   outcome: 'approved',
+   *   confidence: 0.91,
+   *   signals: {
+   *     factors: { risk_score: 0.21, amount: 3400, contract_verified: true },
+   *     thresholds: {
+   *       risk: { value: 0.21, limit: 0.40, passed: true },
+   *       amount: { value: 3400, limit: 10000, passed: true },
+   *     },
+   *     triggered_rule: 'auto_approve_low_risk',
+   *     explanation: 'Approved because vendor risk (0.21) < threshold (0.40)',
+   *   },
+   * });
+   * ```
+   */
+  async logDecisionWithSignals(
+    traceId: string,
+    stepId: string,
+    actorName: string,
+    decision: {
+      input: Record<string, any>;
+      output: Record<string, any>;
+      reasoning?: string;
+      confidence?: number;
+      outcome: OutcomeType;
+      policyVersionId?: string;
+      signals: DecisionSignals;
+    },
+    options?: {
+      parentStepId?: string;
+      metadata?: Record<string, any>;
+    }
+  ): Promise<DecisionEvent> {
+    return this.logEvent({
+      trace_id: traceId,
+      step_id: stepId,
+      parent_step_id: options?.parentStepId,
+      actor_type: 'agent',
+      actor_name: actorName,
+      event_type: 'decision_made',
+      input_summary: decision.input,
+      output_summary: decision.output,
+      reasoning: decision.signals.explanation,
+      confidence: decision.confidence,
+      outcome: decision.outcome,
+      policy_version_id: decision.policyVersionId,
+      signals: decision.signals,
+      metadata: {
+        ...options?.metadata,
+        has_signals: true,
+        triggered_rule: decision.signals.triggered_rule,
+      },
+    });
   }
 
   // ==========================================================================

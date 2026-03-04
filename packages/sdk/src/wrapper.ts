@@ -1,5 +1,5 @@
 import { LedgerMindClient } from './client';
-import { OutcomeType, SimilarityResult } from '@ledgermind/types';
+import { OutcomeType, SimilarityResult, DecisionSignals } from '@ledgermind/types';
 
 /**
  * Generic agent interface (orchestrator-agnostic)
@@ -30,7 +30,7 @@ export interface AgentResultWithPrecedent<TOutput = any> {
  */
 export interface WrapAgentOptions {
   enablePrecedentLookup?: boolean;
-  confidenceThreshold?: number; // Below this, escalate
+  confidenceThreshold?: number;
   autoLogStart?: boolean;
   autoLogResult?: boolean;
 }

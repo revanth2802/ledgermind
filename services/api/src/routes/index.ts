@@ -3,8 +3,12 @@ import { Pool } from 'pg';
 import { EventRepository, TraceRepository, VectorRepository, OverrideRepository } from '@ledgermind/db';
 import { z } from 'zod';
 import { EmbeddingService } from '../services/embedding';
+import { MetricsRegistry } from '../observability';
+import { HybridScorer } from '../scoring';
+import { QueryCache } from '../cache';
+import { IngestionQueue } from '../ingestion';
 
-export function createRouter(pool: Pool): Router {
+export function createRouter(pool: Pool, metrics?: MetricsRegistry): Router {
   const router = Router();
   
   const eventRepo = new EventRepository(pool);
@@ -12,6 +16,19 @@ export function createRouter(pool: Pool): Router {
   const vectorRepo = new VectorRepository(pool);
   const overrideRepo = new OverrideRepository(pool);
   const embeddingService = new EmbeddingService();
+
+  // ── New modules ────────────────────────────────────────────────────────────
+  const scorer = new HybridScorer();
+  const queryCache = new QueryCache({ metrics });
+
+  // Async ingestion queue (embed + store in background)
+  const ingestionQueue = new IngestionQueue(
+    (input) => embeddingService.generateEmbedding(input),
+    (eventId, tenantId, embedding, metadata) =>
+      vectorRepo.storeVector(eventId, tenantId, embedding, metadata),
+    { metrics }
+  );
+  ingestionQueue.start();
 
   // ==========================================================================
   // TRACES
@@ -108,32 +125,42 @@ export function createRouter(pool: Pool): Router {
     try {
       const tenantId = (req as any).tenantId;
       
-      // Create event
+      // Create event (synchronous — always persisted immediately)
+      const stopDb = metrics?.dbQueryLatency.start();
       const event = await eventRepo.createEvent(tenantId, req.body);
+      stopDb?.();
 
-      // If it's a decision event, generate and store embedding
+      // If it's a decision event, queue embedding for async processing
       if (req.body.event_type === 'decision_made') {
-        const embedding = await embeddingService.generateEmbedding({
-          input: req.body.input_summary,
-          output: req.body.output_summary,
-          reasoning: req.body.reasoning,
-        });
-
-        await vectorRepo.storeVector(
-          event.event_id,
+        const jobId = `ingest_${event.event_id}`;
+        const accepted = ingestionQueue.submit({
+          id: jobId,
+          eventId: event.event_id,
           tenantId,
-          embedding,
-          {
+          embeddingInput: {
+            input: req.body.input_summary,
+            output: req.body.output_summary,
+            reasoning: req.body.reasoning,
+          },
+          vectorMetadata: {
             decision_type: req.body.metadata?.decision_type,
             workflow_name: req.body.metadata?.workflow_name,
             outcome: req.body.outcome,
             policy_version_id: req.body.policy_version_id,
             timestamp: event.timestamp,
-          }
-        );
+          },
+        });
+
+        if (!accepted) {
+          // Queue full — backpressure. Event is saved, embedding deferred.
+          console.warn(`⚠️  Ingestion queue full, embedding deferred for event ${event.event_id}`);
+        }
+
+        // Invalidate cache for this tenant (new data incoming)
+        queryCache.invalidateTenant(tenantId);
       }
 
-      res.json(event);
+      res.status(202).json(event);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -160,12 +187,31 @@ export function createRouter(pool: Pool): Router {
       const tenantId = (req as any).tenantId;
       const query = req.body;
 
-      // Generate embedding for query context
+      // ── Cache check ────────────────────────────────────────────────────
+      const cacheKey = QueryCache.hashQuery({
+        tenantId,
+        queryText: JSON.stringify(query.input_context),
+        filters: {
+          workflow_name: query.workflow_name,
+          outcome_filter: query.outcome_filter,
+          policy_version_id: query.policy_version_id,
+        },
+      });
+
+      const cached = queryCache.get<any>(cacheKey);
+      if (cached) {
+        return res.json({ ...cached, _cached: true });
+      }
+
+      // ── Embed query ────────────────────────────────────────────────────
+      const stopEmbed = metrics?.embeddingLatency.start();
       const queryEmbedding = await embeddingService.generateEmbedding({
         input: query.input_context,
       });
+      stopEmbed?.();
 
-      // Find similar cases
+      // ── Find candidates (filter-first, optimized) ─────────────────────
+      const stopRetrieval = metrics?.retrievalLatency.start();
       const similarCases = await vectorRepo.findSimilar(
         tenantId,
         queryEmbedding,
@@ -178,36 +224,79 @@ export function createRouter(pool: Pool): Router {
         }
       );
 
-      // Calculate aggregate statistics
-      const totalFound = similarCases.length;
-      const avgConfidence = similarCases.reduce((sum, c) => sum + (c.confidence || 0), 0) / (totalFound || 1);
-      const overrideCount = similarCases.filter(c => c.was_overridden).length;
+      // ── Apply hybrid scoring ───────────────────────────────────────────
+      const scoredCases = scorer.scoreAndRank(
+        similarCases.map((c) => ({
+          // Spread original fields first, then override with scoring-specific keys
+          ...(c as any),
+          vectorScore: c.similarity_score,
+          timestamp: c.timestamp,
+          workflowName: (c as any).workflow_name,
+          decisionType: (c as any).decision_type,
+          outcome: c.outcome,
+          policyVersionId: c.policy_version_id,
+          confidence: c.confidence,
+          wasOverridden: c.was_overridden,
+        })),
+        {
+          workflowName: query.workflow_name,
+          decisionType: query.decision_type,
+          outcomeFilter: query.outcome_filter,
+          policyVersionId: query.policy_version_id,
+        },
+        query.limit
+      );
+      stopRetrieval?.();
+
+      // ── Aggregate statistics ───────────────────────────────────────────
+      const totalFound = scoredCases.length;
+      const avgConfidence = scoredCases.reduce((sum, c) => sum + ((c as any).confidence || 0), 0) / (totalFound || 1);
+      const overrideCount = scoredCases.filter(c => (c as any).was_overridden).length;
       const overrideRate = (overrideCount / (totalFound || 1)) * 100;
 
-      // Calculate outcome distribution
-      const outcomeDistribution = similarCases.reduce((dist, c) => {
-        if (c.outcome) {
-          dist[c.outcome] = (dist[c.outcome] || 0) + 1;
+      const outcomeDistribution = scoredCases.reduce((dist, c) => {
+        if ((c as any).outcome) {
+          dist[(c as any).outcome] = (dist[(c as any).outcome] || 0) + 1;
         }
         return dist;
       }, {} as Record<string, number>);
 
-      // Calculate precedent alignment score
-      // High score = low override rate + high confidence + recency
       const precedentAlignmentScore = Math.max(0, Math.min(1,
-        (1 - (overrideRate / 100)) * 0.5 + // Override rate weight
-        avgConfidence * 0.3 + // Confidence weight
-        0.2 // Base score for having precedents
+        (1 - (overrideRate / 100)) * 0.5 +
+        avgConfidence * 0.3 +
+        0.2
       ));
 
-      res.json({
-        cases: similarCases,
+      const result = {
+        cases: scoredCases.map((c) => ({
+          event_id: (c as any).event_id,
+          trace_id: (c as any).trace_id,
+          similarity_score: (c as any).similarity_score,
+          hybrid_score: c.finalScore,
+          score_breakdown: c.signals,
+          timestamp: (c as any).timestamp,
+          actor_name: (c as any).actor_name,
+          input_summary: (c as any).input_summary,
+          output_summary: (c as any).output_summary,
+          reasoning: (c as any).reasoning,
+          outcome: (c as any).outcome,
+          confidence: (c as any).confidence,
+          was_overridden: (c as any).was_overridden,
+          override_reason: (c as any).override_reason,
+          policy_version_id: (c as any).policy_version_id,
+        })),
         total_found: totalFound,
         avg_confidence: avgConfidence,
         override_rate: overrideRate,
         outcome_distribution: outcomeDistribution,
         precedent_alignment_score: precedentAlignmentScore,
-      });
+        scoring_weights: scorer.getWeights(),
+      };
+
+      // ── Cache result ───────────────────────────────────────────────────
+      queryCache.set(cacheKey, result);
+
+      res.json(result);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -1038,11 +1127,64 @@ ${JSON.stringify(decisions.slice(0, 20), null, 2)}`,
 
       res.json({
         status: 'ok',
-        version: '1.0.0',
+        version: '0.2.0',
         embedding_provider: embeddingService.getProviderName(),
         database: dbStatus,
+        ingestion_queue: ingestionQueue.status(),
+        cache_size: queryCache.size,
+        scoring_weights: scorer.getWeights(),
         timestamp: new Date().toISOString(),
       });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==========================================================================
+  // INFRASTRUCTURE ENDPOINTS
+  // ==========================================================================
+
+  /** Ingestion queue diagnostics */
+  router.get('/system/ingestion', async (_req: Request, res: Response) => {
+    res.json({
+      queue: ingestionQueue.status(),
+      dead_letter_count: ingestionQueue.getDeadLetterQueue().length,
+    });
+  });
+
+  /** Retry all dead-letter queue items */
+  router.post('/system/ingestion/retry-dlq', async (_req: Request, res: Response) => {
+    const retried = ingestionQueue.retryDeadLetter();
+    res.json({ retried, message: `${retried} jobs re-queued for retry` });
+  });
+
+  /** Clear the similarity query cache */
+  router.post('/system/cache/clear', async (_req: Request, res: Response) => {
+    queryCache.clear();
+    res.json({ message: 'Cache cleared' });
+  });
+
+  /** Explain the query plan for similarity search (diagnostic) */
+  router.get('/system/explain-query', async (req: Request, res: Response) => {
+    try {
+      const tenantId = (req as any).tenantId;
+      const workflowName = req.query.workflow_name as string | undefined;
+      const plan = await (vectorRepo as any).explainSimilarityQuery(tenantId, { workflowName });
+      res.json({ query_plan: plan });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  /** Get vector candidate count for a filter set */
+  router.get('/system/candidate-count', async (req: Request, res: Response) => {
+    try {
+      const tenantId = (req as any).tenantId;
+      const count = await (vectorRepo as any).getCandidateCount(tenantId, {
+        workflowName: req.query.workflow_name as string | undefined,
+        outcome: req.query.outcome as string | undefined,
+      });
+      res.json({ tenant_id: tenantId, candidate_count: count });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

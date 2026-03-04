@@ -5,11 +5,13 @@ import { Pool } from 'pg';
 import { createRouter } from './routes';
 import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error';
+import { getMetrics, metricsMiddleware, metricsHandler } from './observability';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const metrics = getMetrics();
 
 // Database connection
 const pool = new Pool({
@@ -28,6 +30,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Observability – instrument all requests
+app.use(metricsMiddleware(metrics));
+
+// Metrics endpoint (public, unauthenticated)
+app.get('/metrics', metricsHandler(metrics));
+
 // Health check (public)
 app.get('/health', async (req, res) => {
   try {
@@ -41,8 +49,8 @@ app.get('/health', async (req, res) => {
 // Auth middleware (protects all API routes)
 app.use('/api', authMiddleware);
 
-// API routes
-app.use('/api', createRouter(pool));
+// API routes (pass metrics for per-operation instrumentation)
+app.use('/api', createRouter(pool, metrics));
 
 // Error handling
 app.use(errorHandler);
@@ -52,6 +60,7 @@ app.listen(port, () => {
   console.log(`🚀 LedgerMind API running on port ${port}`);
   console.log(`   Environment: ${process.env.NODE_ENV}`);
   console.log(`   Health: http://localhost:${port}/health`);
+  console.log(`   Metrics: http://localhost:${port}/metrics`);
 });
 
 // Graceful shutdown

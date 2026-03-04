@@ -24,6 +24,31 @@ export type OutcomeType =
   | 'error';
 
 // ============================================================================
+// Decision Signals (Structured Telemetry)
+// ============================================================================
+
+/**
+ * Structured decision signals — the queryable, analyzable data points
+ * that drove a decision. Like an airplane black box for AI.
+ *
+ * NO raw chain-of-thought. Instead: structured signals + clean explanation.
+ *
+ * Bad:  "Hmm the vendor risk is low, and the contract looks valid..."
+ * Good: { risk_score: 0.21, contract_verified: true }
+ *       explanation: "Approved because vendor risk (0.21) < threshold (0.40)"
+ */
+export interface DecisionSignals {
+  /** Key-value pairs of the structured factors that drove the decision */
+  factors: Record<string, number | string | boolean>;
+  /** Which policy thresholds were evaluated */
+  thresholds?: Record<string, { value: number; limit: number; passed: boolean }>;
+  /** Which policy rule triggered the outcome */
+  triggered_rule?: string;
+  /** Clean, structured explanation (not raw model thinking) */
+  explanation: string;
+}
+
+// ============================================================================
 // Decision Event (Core Data Model)
 // ============================================================================
 
@@ -46,6 +71,9 @@ export interface DecisionEvent {
   reasoning?: string;
   confidence?: number; // 0.0 - 1.0
   outcome?: OutcomeType;
+  
+  // Structured decision signals
+  signals?: DecisionSignals;
   
   // Context
   policy_version_id?: string;
@@ -211,6 +239,8 @@ export interface CreateEventRequest {
   reasoning?: string;
   confidence?: number;
   outcome?: OutcomeType;
+  
+  signals?: DecisionSignals;
   
   policy_version_id?: string;
   metadata?: Record<string, any>;

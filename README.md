@@ -20,6 +20,7 @@ LedgerMind is an **open-source decision intelligence platform** that captures, a
 - **Analyze patterns** — Understand decision trends, override rates, and performance over time
 - **Search by meaning** — Find similar past decisions using semantic search
 - **Full audit trail** — Complete timeline for compliance and debugging
+- **Structured decision signals** — Capture the factors, thresholds, and rules that drove each decision
 
 **Not another observability tool.** LedgerMind captures *decisions as structured records* — the what, why, and outcome of every AI judgment, not just logs of what happened.
 
@@ -157,6 +158,39 @@ const timeline = await client.getTimeline('trace_abc123');
 // CreditAgent → RiskAgent → PolicyAgent → Human Decision
 // With reasoning, confidence, and policy context at each step
 ```
+
+### 7. Structured Decision Signals
+
+Capture the **structured factors** that drove each decision — like an airplane black box for AI.
+No raw chain-of-thought. Instead: queryable signals + clean explanations.
+
+```typescript
+await client.logDecisionWithSignals(traceId, 'step_1', 'VendorAgent', {
+  input: { vendor_id: 'V-1042', invoice_amount: 3400 },
+  output: { decision: 'approved' },
+  outcome: 'approved',
+  confidence: 0.91,
+  signals: {
+    factors: {
+      risk_score: 0.21,
+      amount: 3400,
+      contract_verified: true,
+    },
+    thresholds: {
+      risk: { value: 0.21, limit: 0.40, passed: true },
+      amount: { value: 3400, limit: 10000, passed: true },
+    },
+    triggered_rule: 'auto_approve_low_risk',
+    explanation: 'Approved because vendor risk (0.21) < threshold (0.40)',
+  },
+});
+```
+
+Why signals instead of raw chain-of-thought?
+- **Queryable** — filter decisions by `risk_score > 0.5` or `contract_verified = false`
+- **Stable** — structured data doesn't vary between model runs
+- **Secure** — no risk of leaking model internals or prompt content
+- **Auditable** — regulators want facts and thresholds, not "let me think..."
 
 ---
 
