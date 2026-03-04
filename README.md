@@ -480,7 +480,7 @@ ledgermind/
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/ledgermind.git
+git clone https://github.com/revanth2802/ledgermind.git
 cd ledgermind
 
 # Start everything with Docker
@@ -493,7 +493,7 @@ docker-compose up -d
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/ledgermind.git
+git clone https://github.com/revanth2802/ledgermind.git
 cd ledgermind
 npm install
 
@@ -696,7 +696,73 @@ npx tsx test-ai-features.ts
 
 ---
 
-## 📚 Documentation
+## � Integration Guide
+
+Wrap any AI system with LedgerMind in 3 steps:
+
+### Node.js
+
+```js
+// 1. Call your AI as usual
+const result = await yourAI(input);
+
+// 2. Log the decision to LedgerMind
+await fetch('http://localhost:3000/api/events', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer your-api-key',
+    'X-Tenant-ID': 'your-tenant',
+  },
+  body: JSON.stringify({
+    trace_id: 'trace_123',
+    step_id: 'step_1',
+    actor_name: 'my-agent',
+    actor_type: 'agent',
+    event_type: 'decision_made',
+    input_summary: input,
+    output_summary: result,
+    reasoning: result.reasoning,
+    confidence: result.confidence,
+    outcome: result.decision,
+  }),
+});
+```
+
+### Python
+
+```python
+import requests
+
+result = your_ai(input_data)
+
+requests.post('http://localhost:3000/api/events', json={
+    'trace_id': 'trace_123',
+    'step_id': 'step_1',
+    'actor_name': 'my-agent',
+    'actor_type': 'agent',
+    'event_type': 'decision_made',
+    'input_summary': input_data,
+    'output_summary': result,
+    'reasoning': result['reasoning'],
+    'confidence': result['confidence'],
+    'outcome': result['decision'],
+}, headers={
+    'Authorization': 'Bearer your-api-key',
+    'X-Tenant-ID': 'your-tenant',
+})
+```
+
+### Full Examples
+
+See working integration examples:
+- **Node.js**: [`examples/integrate-your-ai.js`](examples/integrate-your-ai.js)
+- **Python**: [`examples/integrate-python.py`](examples/integrate-python.py)
+- **Tax Demo**: [`scripts/tax-demo.js`](scripts/tax-demo.js) — 20 tax returns through 4 AI agents
+
+---
+
+## �📚 Documentation
 
 - [Development Guide](./DEVELOPMENT.md)
 - [SDK Guide](./packages/sdk/README.md)

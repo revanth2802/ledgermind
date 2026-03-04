@@ -77,8 +77,8 @@ class ApiClient {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer demo-key',
-        'x-tenant-id': 'demo-tenant',
+        'Authorization': 'Bearer tax-demo-key',
+        'x-tenant-id': 'irs-demo',
         ...options?.headers,
       },
     })
